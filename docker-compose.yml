@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  jarvisclone:
+    build: .
+    container_name: jarvisclone-app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (can be added later)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: jarvisclone-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - jarvis-network
+
+  # Optional: PostgreSQL for production database (can be added later)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: jarvisclone-db
+  #   environment:
+  #     POSTGRES_DB: jarvisclone
+  #     POSTGRES_USER: jarvis
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+  #   networks:
+  #     - jarvis-network
+
+networks:
+  jarvis-network:
+    driver: bridge
+
+volumes:
+  # redis_data:
+  # postgres_data:
+  data:
+  logs:
+

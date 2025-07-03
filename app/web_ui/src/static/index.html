@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JarvisClone AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .assistant-message {
+            background: #e3f2fd;
+            color: #1565c0;
+            margin-right: auto;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn, .speak-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .speak-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .speak-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .send-btn:disabled, .speak-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin: 10px 0;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .language-select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .clear-btn {
+            padding: 8px 16px;
+            background: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .clear-btn:hover {
+            background: #d84315;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .input-container {
+                flex-direction: column;
+            }
+            
+            .input-field {
+                width: 100%;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 JarvisClone</h1>
+            <p>Your Intelligent AI Assistant</p>
+        </div>
+        
+        <div class="chat-container">
+            <div class="controls">
+                <select class="language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="hi">हिंदी (Hindi)</option>
+                </select>
+                <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
+            </div>
+            
+            <div class="messages" id="messages">
+                <div class="message assistant-message">
+                    Hello! I'm JarvisClone, your AI assistant. I can help you with various tasks, answer questions, search the web, and even speak responses aloud. How can I assist you today?
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                JarvisClone is thinking...
+            </div>
+            
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    class="input-field" 
+                    id="messageInput" 
+                    placeholder="Type your message here..."
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+                <button class="speak-btn" id="speakBtn" onclick="speakLastResponse()">🔊 Speak</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastResponse = '';
+        let isProcessing = false;
+
+        function addMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+            messageDiv.textContent = content;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            const sendBtn = document.getElementById('sendBtn');
+            const speakBtn = document.getElementById('speakBtn');
+            
+            loading.style.display = show ? 'block' : 'none';
+            sendBtn.disabled = show;
+            speakBtn.disabled = show;
+            isProcessing = show;
+        }
+
+        async function sendMessage() {
+            if (isProcessing) return;
+            
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, true);
+            input.value = '';
+            
+            // Show loading
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    lastResponse = data.response;
+                    addMessage(data.response);
+                } else {
+                    addMessage(`Error: ${data.error}`, false);
+                }
+            } catch (error) {
+                addMessage(`Network error: ${error.message}`, false);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function speakLastResponse() {
+            if (!lastResponse || isProcessing) return;
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/speak', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: lastResponse })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status !== 'success') {
+                    addMessage(`Speech error: ${data.error || 'Failed to generate speech'}`, false);
+                }
+            } catch (error) {
+                addMessage(`Speech network error: ${error.message}`, false);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function clearChat() {
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.innerHTML = `
+                <div class="message assistant-message">
+                    Hello! I'm JarvisClone, your AI assistant. I can help you with various tasks, answer questions, search the web, and even speak responses aloud. How can I assist you today?
+                </div>
+            `;
+            lastResponse = '';
+        }
+
+        // Language selection handler
+        document.getElementById('languageSelect').addEventListener('change', function(e) {
+            const language = e.target.value;
+            let greeting = '';
+            
+            switch(language) {
+                case 'bn':
+                    greeting = 'নমস্কার! আমি জার্ভিসক্লোন, আপনার AI সহায়ক। আমি কীভাবে আপনাকে সাহায্য করতে পারি?';
+                    break;
+                case 'hi':
+                    greeting = 'नमस्ते! मैं जार्विसक्लोन हूं, आपका AI सहायक। मैं आपकी कैसे मदद कर सकता हूं?';
+                    break;
+                default:
+                    greeting = 'Hello! I\'m JarvisClone, your AI assistant. How can I help you today?';
+            }
+            
+            addMessage(`Language switched. ${greeting}`);
+        });
+
+        // Focus on input field when page loads
+        window.addEventListener('load', function() {
+            document.getElementById('messageInput').focus();
+        });
+    </script>
+</body>
+</html>
+
